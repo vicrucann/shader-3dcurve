@@ -19,4 +19,12 @@ The polyline shaders can be found as `Shaders/polyline.*` files. The vertex and 
 
 Refer to the `Shaders/bezier.*` set of files. The main principle is the same as for the polyline shaders. The vertex shader is a pass-through. The fragment shader demostrates a simple fog effect on the geometry, and the geometrical shader treats the input geometry as Bezier control points, breaks the input curve into the provided number of segments and draws each segment in the same manner as a polyline segment. I.e., it emits a rectangular strip which is always turned towards the camera.
 
+## Requirement
 
+* Compiler that supports C++, e.g., GCC
+* OpenSceneGraph library (>= 3.4.0)
+* CMake (>=2.8.11)
+
+## Build
+
+Use `CMakeLists.txt` to do the build, then run `shader-3dcurve`.
