@@ -11,6 +11,7 @@ include_directories(${OPENSCENEGRAPH_INCLUDE_DIRS})
 
 set(SOURCES
     osgShader.cpp
+    Callbacks.h
     )
 
 file(GLOB SHADER_SRC

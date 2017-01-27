@@ -8,7 +8,6 @@
 #include <osg/Geometry>
 #include <osg/Group>
 #include <osg/Node>
-#include <osg/NodeVisitor>
 #include <osg/Object>
 #include <osg/PrimitiveSet>
 #include <osg/Program>
@@ -19,39 +18,12 @@
 #include <osgViewer/Viewer>
 
 #include <osg/BlendFunc>
+#include <osg/LineWidth>
 #include <osgDB/ReadFile>
 #include <osgGA/TrackballManipulator>
 
-struct ModelViewProjectionMatrixCallback: public osg::Uniform::Callback
-{
-    ModelViewProjectionMatrixCallback(osg::Camera* camera) :
-            _camera(camera) {
-    }
-
-    virtual void operator()(osg::Uniform* uniform, osg::NodeVisitor* nv) {
-        osg::Matrixd viewMatrix = _camera->getViewMatrix();
-        osg::Matrixd modelMatrix = osg::computeLocalToWorld(nv->getNodePath());
-        osg::Matrixd modelViewProjectionMatrix = modelMatrix * viewMatrix * _camera->getProjectionMatrix();
-        uniform->set(modelViewProjectionMatrix);
-    }
-
-    osg::Camera* _camera;
-};
-
-struct CameraEyeCallback: public osg::Uniform::Callback
-{
-    CameraEyeCallback(osg::Camera* camera) :
-            _camera(camera) {
-    }
-
-    virtual void operator()(osg::Uniform* uniform, osg::NodeVisitor* /*nv*/) {
-        osg::Vec3f eye, center, up;
-        _camera->getViewMatrixAsLookAt(eye, center, up);
-        osg::Vec4f eye_vec = osg::Vec4f(eye.x(), eye.y(), eye.z(), 1);
-        uniform->set(eye_vec);
-    }
-    osg::Camera* _camera;
-};
+// user defined callbacks for uniforms
+#include "Callbacks.h"
 
 const int OSG_WIDTH = 1280;
 const int OSG_HEIGHT = 960;
@@ -65,9 +37,15 @@ osg::Vec3Array* createDataPoints()
     vertices->push_back(osg::Vec3f(0,0,1));
     vertices->push_back(osg::Vec3f(1,0,1));
     vertices->push_back(osg::Vec3f(1,0,0));
+    vertices->push_back(osg::Vec3f(1,0,0));
+    vertices->push_back(osg::Vec3f(1,0,-1));
+    vertices->push_back(osg::Vec3f(2,0,-1));
+    vertices->push_back(osg::Vec3f(2,0,0));
 
-    vertices->push_back(osg::Vec3f(1,1,0));
-    vertices->push_back(osg::Vec3f(0.5,5,0));
+    vertices->push_back(osg::Vec3f(2,0,0));
+    vertices->push_back(osg::Vec3f(2,3,0));
+    vertices->push_back(osg::Vec3f(2,3,1));
+    vertices->push_back(osg::Vec3f(2,3,2));
 
     return vertices.release();
 }
@@ -83,6 +61,13 @@ osg::Vec4Array* createColorPoints()
 
     colors->push_back(osg::Vec4f(0.9, 0.2, 0.9, 1));
     colors->push_back(osg::Vec4f(0.9, 0.9, 0.1, 1));
+    colors->push_back(osg::Vec4f(0.7, 0.1, 0.9, 1));
+    colors->push_back(osg::Vec4f(0.2, 0.9, 0.1, 1));
+
+    colors->push_back(osg::Vec4f(0.0, 0.0, 0.0, 1));
+    colors->push_back(osg::Vec4f(0.25, 0.25, 0.25, 1));
+    colors->push_back(osg::Vec4f(0.5, 0.5, 0.5, 1));
+    colors->push_back(osg::Vec4f(1.0, 1.0, 1.0, 1));
 
     return colors.release();
 }
@@ -94,10 +79,8 @@ osg::Node* createBezierScene(osg::Camera* camera)
 
     // create geometry
     osg::ref_ptr<osg::Geometry> geom = new osg::Geometry;
-    geom->addPrimitiveSet(new osg::DrawArrays(GL_POLYGON, 0, vertices->size()));
+    geom->addPrimitiveSet(new osg::DrawArrays(GL_LINES_ADJACENCY_EXT, 0, vertices->size()));
     geom->setUseDisplayList(false);
-
-    // defaults
     geom->setVertexArray(vertices);
     geom->setColorArray(colors, osg::Array::BIND_PER_VERTEX);
 
@@ -109,12 +92,17 @@ osg::Node* createBezierScene(osg::Camera* camera)
     osg::ref_ptr<osg::Program> program = new osg::Program;
 
     osg::ref_ptr<osg::Shader> vertShader = new osg::Shader(osg::Shader::VERTEX);
-    if (!vertShader->loadShaderSourceFromFile("Shaders/polygon.vert"))
+    if (!vertShader->loadShaderSourceFromFile("Shaders/bezier.vert"))
         std::cerr << "Could not read VERTEX shader from file" << std::endl;
     program->addShader(vertShader);
 
+    osg::ref_ptr<osg::Shader> geomShader = new osg::Shader(osg::Shader::GEOMETRY);
+        if (!geomShader->loadShaderSourceFromFile("Shaders/bezier.geom"))
+            std::cerr << "Could not read GEOMETRY shader from file" << std::endl;
+    program->addShader(geomShader);
+
     osg::ref_ptr<osg::Shader> fragShader = new osg::Shader(osg::Shader::FRAGMENT);
-    if (!fragShader->loadShaderSourceFromFile("Shaders/polygon.frag"))
+    if (!fragShader->loadShaderSourceFromFile("Shaders/bezier.frag"))
         std::cerr << "Could not read FRAGMENT shader from file" << std::endl;
     program->addShader(fragShader);
 
@@ -130,10 +118,20 @@ osg::Node* createBezierScene(osg::Camera* camera)
     modelViewProjectionMatrix->setUpdateCallback(new ModelViewProjectionMatrixCallback(camera));
     state->addUniform(modelViewProjectionMatrix);
 
+    osg::Uniform* viewportVector = new osg::Uniform(osg::Uniform::FLOAT_VEC2, "Viewport");
+    viewportVector->setUpdateCallback(new ViewportCallback(camera));
+    state->addUniform(viewportVector);
+
     osg::Uniform* cameraEye = new osg::Uniform(osg::Uniform::FLOAT_VEC4, "CameraEye");
     cameraEye->setUpdateCallback(new CameraEyeCallback(camera));
     state->addUniform(cameraEye);
 
+    float Thickness = 27.0;
+    float miterLimit = 0.75;
+    int segments = 30;
+    state->addUniform(new osg::Uniform("Thickness", Thickness));
+    state->addUniform(new osg::Uniform("MiterLimit", miterLimit));
+    state->addUniform(new osg::Uniform("Segments", segments));
     state->addUniform(new osg::Uniform("FogColor", FOG_COLOR));
 
     // state settings
@@ -141,6 +139,9 @@ osg::Node* createBezierScene(osg::Camera* camera)
     state->setMode(GL_BLEND, osg::StateAttribute::ON);
     state->setMode(GL_LINE_SMOOTH, osg::StateAttribute::ON);
 
+    osg::LineWidth* lw = new osg::LineWidth;
+    lw->setWidth(10.f);
+    state->setAttribute(lw, osg::StateAttribute::ON);
     osg::BlendFunc* blendfunc = new osg::BlendFunc();
     state->setAttributeAndModes(blendfunc, osg::StateAttribute::ON);
 

@@ -4,7 +4,6 @@ uniform float Thickness;
 uniform vec2 Viewport;
 uniform float MiterLimit;
 uniform int Segments;
-uniform vec4 CameraEye;
 
 const int SegmentsMax = 30; // max_vertices = (SegmentsMax+1)*4;
 const int SegmentsMin = 3; // min number of segments per curve
@@ -20,6 +19,7 @@ in VertexData{
 out VertexData{
     vec4 mColor;
     vec2 mTexCoord; // fix before usage
+    vec4 mVertex; // to pass in case if we use fog effect
 } VertexOut;
 
 vec2 toScreenSpace(vec4 vertex)
@@ -41,14 +41,7 @@ vec4 toBezier(float delta, int i, vec4 P0, vec4 P1, vec4 P2, vec4 P3)
     return (P0 * one_minus_t2 * one_minus_t + P1 * 3.0 * t * one_minus_t2 + P2 * 3.0 * t2 * one_minus_t + P3 * t2 * t);
 }
 
-float getFogFactor(float d)
-{
-    const float mx = 20.0;
-    const float mn = 10.0;
-    return (mx - d) / (mx - mn);
-}
-
-void drawSegment(vec2 points[4], vec4 colors[4], float zValues[4])
+void drawSegment(vec2 points[4], vec4 colors[4], float zValues[4], vec4 V[4])
 {
     vec2 p0 = points[0];
     vec2 p1 = points[1];
@@ -93,16 +86,19 @@ void drawSegment(vec2 points[4], vec4 colors[4], float zValues[4])
         if( dot( v0, n1 ) > 0 ) {
             VertexOut.mTexCoord = vec2( 0, 0 );
             VertexOut.mColor = colors[1];
+            VertexOut.mVertex = V[1];
             gl_Position = vec4( ( p1 + Thickness * n0 ) / Viewport, zValues[1], 1.0 );
             EmitVertex();
 
             VertexOut.mTexCoord = vec2( 0, 0 );
             VertexOut.mColor = colors[1];
+            VertexOut.mVertex = V[1];
             gl_Position = vec4( ( p1 + Thickness * n1 ) / Viewport, zValues[1], 1.0 );
             EmitVertex();
 
             VertexOut.mTexCoord = vec2( 0, 0.5 );
             VertexOut.mColor = colors[1];
+            VertexOut.mVertex = V[1];
             gl_Position = vec4( p1 / Viewport, 0.0, 1.0 );
             EmitVertex();
 
@@ -111,16 +107,19 @@ void drawSegment(vec2 points[4], vec4 colors[4], float zValues[4])
         else {
             VertexOut.mTexCoord = vec2( 0, 1 );
             VertexOut.mColor = colors[1];
+            VertexOut.mVertex = V[1];
             gl_Position = vec4( ( p1 - Thickness * n1 ) / Viewport, zValues[1], 1.0 );
             EmitVertex();
 
             VertexOut.mTexCoord = vec2( 0, 1 );
             VertexOut.mColor = colors[1];
+            VertexOut.mVertex = V[1];
             gl_Position = vec4( ( p1 - Thickness * n0 ) / Viewport, zValues[1], 1.0 );
             EmitVertex();
 
             VertexOut.mTexCoord = vec2( 0, 0.5 );
             VertexOut.mColor = colors[1];
+            VertexOut.mVertex = V[1];
             gl_Position = vec4( p1 / Viewport, zValues[1], 1.0 );
             EmitVertex();
 
@@ -134,21 +133,25 @@ void drawSegment(vec2 points[4], vec4 colors[4], float zValues[4])
     // generate the triangle strip
     VertexOut.mTexCoord = vec2( 0, 0 );
     VertexOut.mColor = colors[1];
+    VertexOut.mVertex = V[1];
     gl_Position = vec4( ( p1 + length_a * miter_a ) / Viewport, zValues[1], 1.0 );
     EmitVertex();
 
     VertexOut.mTexCoord = vec2( 0, 1 );
     VertexOut.mColor = colors[1];
+    VertexOut.mVertex = V[1];
     gl_Position = vec4( ( p1 - length_a * miter_a ) / Viewport, zValues[1], 1.0 );
     EmitVertex();
 
     VertexOut.mTexCoord = vec2( 0, 0 );
     VertexOut.mColor = colors[2];
+    VertexOut.mVertex = V[2];
     gl_Position = vec4( ( p2 + length_b * miter_b ) / Viewport, zValues[2], 1.0 );
     EmitVertex();
 
     VertexOut.mTexCoord = vec2( 0, 1 );
     VertexOut.mColor = colors[2];
+    VertexOut.mVertex = V[2];
     gl_Position = vec4( ( p2 - length_b * miter_b ) / Viewport, zValues[2], 1.0 );
     EmitVertex();
 
@@ -211,11 +214,11 @@ void main(void)
             vec4 dir = normalize(Points[2] - Points[1]);
             Points[3] = Points[2] + dir * 0.01;
         }
+
         /* color interpolation: define which bezier segment the point belongs to and then interpolate
           between the two colors of that segment */
         if (i==0) colors[1] = C[0];
         else colors[1] = colors[2];
-
         /* fraction p{i} is located between fraction p{j} and p{j+1} */
         float pi = float(i+1) / float(nSegments);
         if (pi >= float(j+1)/3.f) j++;
@@ -224,17 +227,17 @@ void main(void)
         float a = (pi-pj) / (pj1-pj);
         colors[2] = mix(C[j], C[j+1], a);
 
-        {
-            /* fog effect: more transparency in color with greater distance */
-            float d1 = distance(CameraEye, V[1]);
-            float d2 = distance(CameraEye, V[2]);
+//        {
+//            /* fog effect: more transparency in color with greater distance */
+//            float d1 = distance(CameraEye, V[1]);
+//            float d2 = distance(CameraEye, V[2]);
 
-            float alpha1 = getFogFactor(d1);
-            float alpha2 = getFogFactor(d2);
+//            float alpha1 = getFogFactor(d1);
+//            float alpha2 = getFogFactor(d2);
 
-            colors[1] = vec4(colors[1].rgb, alpha1);
-            colors[2] = vec4(colors[2].rgb, alpha2);
-        }
+//            colors[1] = vec4(colors[1].rgb, alpha1);
+//            colors[2] = vec4(colors[2].rgb, alpha2);
+//        }
 
         vec2 points[4]; // segments of curve in 2d
         points[0] = toScreenSpace(Points[0]);
@@ -247,7 +250,7 @@ void main(void)
         zValues[2] = toZValue(Points[2]);
         zValues[3] = toZValue(Points[3]);
 
-        drawSegment(points, colors, zValues);
+        drawSegment(points, colors, zValues, V);
     }
 
 }
