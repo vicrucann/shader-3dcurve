@@ -1,6 +1,14 @@
 #ifndef CALLBACKS_H
 #define CALLBACKS_H
 
+/* \brief Header file for different camera callbacks that are used within GLSL shaders.
+ * This file is a part of shader-3dcurve example (https://github.com/vicrucann/shader-3dcurve).
+ *
+ * \author Victoria Rudakova
+ * \date January 2017
+ * \copyright MIT license
+*/
+
 #include <osg/Uniform>
 #include <osg/Camera>
 #include <osg/NodeVisitor>

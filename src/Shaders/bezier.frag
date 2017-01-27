@@ -1,7 +1,15 @@
 #version 330
 
+/* \brief Fragment GLSL shader that demonstrates how to apply the simplest fog effect
+ * to your geometry. This file is a part of shader-3dcurve example (https://github.com/vicrucann/shader-3dcurve).
+ * \author Victoria Rudakova
+ * \date January 2017
+ * \copyright MIT license
+*/
+
 uniform vec4 CameraEye;
 uniform vec4 FogColor;
+uniform bool IsFogged;
 
 in VertexData{
     vec4 mColor;
@@ -22,8 +30,11 @@ float getFogFactor(float d)
 
 void main(void)
 {
-    vec4 V = VertexIn.mVertex;
-    float d = distance(CameraEye, V);
-    float alpha = getFogFactor(d);
+    float alpha = 1.f;
+    if (IsFogged){
+        vec4 V = VertexIn.mVertex;
+        float d = distance(CameraEye, V);
+        alpha = getFogFactor(d);
+    }
     gl_FragColor = mix(VertexIn.mColor, FogColor, alpha);
 }

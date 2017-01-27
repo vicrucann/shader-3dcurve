@@ -1,3 +1,11 @@
+/* \brief Main file of an example that demonstrates how to draw thick and smooth curves in 3D.
+ * This file is a part of shader-3dcurve example (https://github.com/vicrucann/shader-3dcurve).
+ *
+ * \author Victoria Rudakova
+ * \date January 2017
+ * \copyright MIT license
+*/
+
 #ifdef _WIN32
 #include <Windows.h>
 #endif // _WIN32
@@ -29,7 +37,7 @@ const int OSG_WIDTH = 1280;
 const int OSG_HEIGHT = 960;
 const osg::Vec4f FOG_COLOR = osg::Vec4f(0.6f, 0.6f, 0.7f, 1.f);
 
-osg::Vec3Array* createDataPoints()
+osg::Vec3Array* createBezierDataPoints()
 {
     osg::ref_ptr<osg::Vec3Array> vertices = new osg::Vec3Array;
 
@@ -50,7 +58,7 @@ osg::Vec3Array* createDataPoints()
     return vertices.release();
 }
 
-osg::Vec4Array* createColorPoints()
+osg::Vec4Array* createBezierColorPoints()
 {
     osg::ref_ptr<osg::Vec4Array> colors = new osg::Vec4Array;
 
@@ -74,8 +82,8 @@ osg::Vec4Array* createColorPoints()
 
 osg::Node* createBezierScene(osg::Camera* camera)
 {
-    osg::Vec3Array* vertices = createDataPoints();
-    osg::Vec4Array* colors = createColorPoints();
+    osg::Vec3Array* vertices = createBezierDataPoints();
+    osg::Vec4Array* colors = createBezierColorPoints();
 
     // create geometry
     osg::ref_ptr<osg::Geometry> geom = new osg::Geometry;
@@ -129,10 +137,12 @@ osg::Node* createBezierScene(osg::Camera* camera)
     float Thickness = 27.0;
     float miterLimit = 0.75;
     int segments = 30;
+    bool isFogged = true;
     state->addUniform(new osg::Uniform("Thickness", Thickness));
     state->addUniform(new osg::Uniform("MiterLimit", miterLimit));
     state->addUniform(new osg::Uniform("Segments", segments));
     state->addUniform(new osg::Uniform("FogColor", FOG_COLOR));
+    state->addUniform(new osg::Uniform("IsFogged", isFogged));
 
     // state settings
     state->setMode(GL_LIGHTING, osg::StateAttribute::OFF);

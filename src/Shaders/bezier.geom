@@ -1,5 +1,13 @@
 #version 330
 
+/* \brief Geometry GLSL shader that demonstrates how to draw basic thick and smooth bezier curves in 3D.
+ * This file is a part of shader-3dcurve example (https://github.com/vicrucann/shader-3dcurve).
+ *
+ * \author Victoria Rudakova
+ * \date January 2017
+ * \copyright MIT license
+*/
+
 uniform float Thickness;
 uniform vec2 Viewport;
 uniform float MiterLimit;
@@ -171,7 +179,7 @@ void main(void)
     B[2] = gl_in[2].gl_Position;
     B[3] = gl_in[3].gl_Position;
 
-    // vertex format
+    // vertex format (will be passed to fragment shader for fogging effect)
     vec4 V[4];
     V[0] = VertexIn[0].mVertex;
     V[1] = VertexIn[1].mVertex;
@@ -227,19 +235,8 @@ void main(void)
         float a = (pi-pj) / (pj1-pj);
         colors[2] = mix(C[j], C[j+1], a);
 
-//        {
-//            /* fog effect: more transparency in color with greater distance */
-//            float d1 = distance(CameraEye, V[1]);
-//            float d2 = distance(CameraEye, V[2]);
-
-//            float alpha1 = getFogFactor(d1);
-//            float alpha2 = getFogFactor(d2);
-
-//            colors[1] = vec4(colors[1].rgb, alpha1);
-//            colors[2] = vec4(colors[2].rgb, alpha2);
-//        }
-
-        vec2 points[4]; // segments of curve in 2d
+        // segments of curve in 2d
+        vec2 points[4];
         points[0] = toScreenSpace(Points[0]);
         points[1] = toScreenSpace(Points[1]);
         points[2] = toScreenSpace(Points[2]);
