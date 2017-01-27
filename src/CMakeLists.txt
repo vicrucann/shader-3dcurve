@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.11)
-project(osgShader)
+project(shader-3dcurve)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
@@ -12,6 +12,7 @@ include_directories(${OPENSCENEGRAPH_INCLUDE_DIRS})
 set(SOURCES
     osgShader.cpp
     Callbacks.h
+    Data.h
     )
 
 file(GLOB SHADER_SRC
