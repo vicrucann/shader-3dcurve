@@ -1,5 +1,7 @@
 # GLSL shader for 3D Bezier curves with added fog effect (using OpenSceneGraph)
 
+![GLSL shader for lines and curves](https://github.com/vicrucann/shader-3dcurve/blob/master/images/curve-lines.gif)
+
 This is an example project that demonstrates how to draw thick and smooth lines / curves in 3D. [It is known](http://vicrucann.github.io/tutorials/osg-shader-3dlines/) that the native `GL_LINE_STRIP_ADJACENCY` creates gaps when drawing a polyline. Another restriction of the above mode is that thickness cannot surpass certain threshold (e.g., `10.f`, depending on the machine). This code demonstrates how a GLSL shaders can help to solve the above problems. 
 
 It is possible to draw two types of geometries with the provided shaders:
