@@ -25,6 +25,7 @@ Refer to the `Shaders/bezier.*` set of files. The main principle is the same as 
 
 * Compiler that supports C++, e.g., GCC
 * OpenSceneGraph library (>= 3.4.0)
+* Graphics card supporting OpenGL (>=3.3) - make sure your drivers are updated
 * CMake (>=2.8.11)
 
 ## Build
