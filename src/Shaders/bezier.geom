@@ -205,7 +205,7 @@ void main(void)
             Points[1] = toBezier(delta, i, B[0], B[1], B[2], B[3]);
             Points[2] = toBezier(delta, i+1, B[0], B[1], B[2], B[3]);
             Points[3] = toBezier(delta, i+2, B[0], B[1], B[2], B[3]);
-            vec4 dir = normalize(Points[2] - Points[1]);
+            vec4 dir = normalize(Points[1] - Points[2]);
             Points[0] = Points[1] + dir * 0.01;
         }
         else if (i < nSegments-1){
