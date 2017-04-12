@@ -32,7 +32,7 @@ Refer to the `Shaders/bezier.*` set of files. The main principle is the same as 
 
 If encountered with `error C6033 : Hardware limitations reached, can only emit ... vertices of this size.`, modify the number of maximum emitting vertices within the shader file. 
 
-In `Stroke.geom` file, seek for `SegmentsMax` variable, and, depending on the maximum number of vertices your hardware supports, change the value. E.g., if the number of maximum vertices is 102 on your machine (based on the error message), set: 
+In `Stroke.geom` file, seek for `SegmentsMax` and `max_vertices` variables, and, depending on the maximum number of vertices your hardware supports, change their values. E.g., if the number of maximum vertices is 102 on your machine (based on the error message), set: 
 
 ```
 const int SegmentsMax = 24; // max_vertices = (SegmentsMax+1)*4;
