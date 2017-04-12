@@ -28,6 +28,18 @@ Refer to the `Shaders/bezier.*` set of files. The main principle is the same as 
 * Graphics card supporting OpenGL (>=3.3) - make sure your drivers are updated
 * CMake (>=2.8.11)
 
+## Troubleshoot
+
+If encountered with `error C6033 : Hardware limitations reached, can only emit ... vertices of this size.`, modify the number of maximum emitting vertices within the shader file. 
+
+In `Stroke.geom` file, seek for `SegmentsMax` variable, and, depending on the maximum number of vertices your hardware supports, change the value. E.g., if the number of maximum vertices is 102 on your machine (based on the error message), set: 
+
+```
+const int SegmentsMax = 24; // max_vertices = (SegmentsMax+1)*4;
+// ...
+layout(triangle_strip, max_vertices = 100) out;
+```
+
 ## Build
 
 Use `CMakeLists.txt` to do the build, then run `shader-3dcurve`.
