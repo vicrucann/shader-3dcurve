@@ -89,7 +89,7 @@ void drawSegment(vec2 points[4], vec4 colors[4], float zValues[4])
 
             VertexOut.mTexCoord = vec2( 0, 0.5 );
             VertexOut.mColor = colors[1];
-            gl_Position = vec4( p1 / Viewport, 0.0, 1.0 );
+            gl_Position = vec4( p1 / Viewport, zValues[1], 1.0 );
             EmitVertex();
 
             EndPrimitive();
